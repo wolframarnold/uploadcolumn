@@ -32,7 +32,7 @@ module UploadColumn
   class UploadedFile < SanitizedFile
     
     attr_reader :instance, :attribute, :options, :versions
-    attr_accessor :suffix
+    attr_accessor :suffix, :extension
     
     class << self
       
@@ -89,7 +89,7 @@ module UploadColumn
           self.process!(@options[:process]) if @options[:process] and self.respond_to?(:process!)
           
           initialize_versions do |version|
-            copy_to_version(version)
+            copy_to_version(version, options[:versions][version].is_a?(Hash) ? options[:versions][version][:format] : nil)
           end
           
           apply_manipulations_to_versions
@@ -206,9 +206,10 @@ module UploadColumn
     
     private
     
-    def copy_to_version(version)
+    def copy_to_version(version, extension)
       copy = self.clone
       copy.suffix = version
+      copy.extension = extension if not extension.nil?
       
       if copy_file(File.join(self.dir, copy.filename))
         return copy
@@ -235,6 +236,7 @@ module UploadColumn
             # TODO: this might result in the manipulator not being loaded.
             @versions[version] = self.clone #class.new(:open, File.join(self.dir, "#{self.basename}-#{version}.#{self.extension}"), instance, attribute, options.merge(:versions => nil, :suffix => version))
             @versions[version].suffix = version
+	    @versions[version].extension = options[:versions][version][:format] if options[:versions][version].is_a?(Hash) and not options[:versions][version][:format].nil?
           end
           
           @versions[version].instance_eval { @path = File.join(self.dir, self.filename) } # ensure path is not cached
