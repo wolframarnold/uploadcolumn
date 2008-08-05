@@ -118,6 +118,14 @@ Note the 'c' in front of the dimensions for the thumb image, this will crop the 
 
 This also puts your images in public/images instead of public, which is neat!
 
+== Format conversion
+
+You can convert the different versions of the uploaded image in another format. To do that, just pass a Hash to your version:
+
+	class User < ActiveRecord::Base
+	  image_column :picture, :versions => { :thumb => { :format => "png", :process => "c100x100" }, :large => "200x300", :sepiatoned => proc{ |img| img.sepiatone } }
+	end
+
 == Runtime rendering
 
 You can manipulate images at runtime (it's a huge performance hit though!). In your controller add an action and use UploadColumnRenderHelper.render_image.
