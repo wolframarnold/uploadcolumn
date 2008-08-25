@@ -34,7 +34,7 @@ module UploadColumn
       else
         begin
           if uploaded_file = UploadColumn::UploadedFile.upload(file, self, name, options)
-            self[name] = uploaded_file.actual_filename
+            self[name] = uploaded_file.filename
             @files[name] = uploaded_file
           end
         rescue IntegrityError => e
