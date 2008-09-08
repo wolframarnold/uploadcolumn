@@ -189,10 +189,9 @@ module UploadColumn
     alias_method :actual_filename, :filename
     
     def filename
-      unless bn = parse_dir_options(:filename)
-        bn = [self.basename, self.suffix].compact.join('-')
-        bn += ".#{self.extension}" unless self.extension.blank?
-      end
+	  bn = self.basename unless bn = parse_dir_options(:filename)
+      bn = [bn, self.suffix].compact.join('-')
+      bn += ".#{self.extension}" unless self.extension.blank?
       return bn
     end
     
