@@ -6,7 +6,7 @@ module UploadColumn
   self.image_extensions = %w(jpg jpeg gif png)
   
   DEFAULT_CONFIGURATION = {
-    :tmp_dir => 'tmp',
+    :tmp_dir => 'tmp/upload',
     :store_dir => proc{ |r, f| f.attribute.to_s },
     :root_dir => File.join(RAILS_ROOT, 'public'),
     :get_content_type_from_file_exec => true,
@@ -25,6 +25,7 @@ module UploadColumn
     :manipulator => UploadColumn::Manipulators::RMagick,
     :root_dir => File.join(RAILS_ROOT, 'public', 'images'),
     :web_root => '/images',
+    :tmp_dir => 'tmp/images',
     :extensions => self.image_extensions
   }.freeze
   
