@@ -120,14 +120,14 @@ module UploadColumn
       end
     end
     
-    # Returns the directory where tmp files are stored for this UploadedFile, relative to :root_dir
+    # Returns the directory where tmp files are stored for this UploadedFile, relative to RAILS_ROOT
     def relative_tmp_dir
       parse_dir_options(:tmp_dir)
     end
     
     # Returns the directory where tmp files are stored for this UploadedFile
     def tmp_dir
-      File.expand_path(self.relative_tmp_dir, @options[:root_dir])
+      File.expand_path("#{RAILS_ROOT}/" + self.relative_tmp_dir)
     end
     
     # Returns the directory where files are stored for this UploadedFile, relative to :root_dir
@@ -198,7 +198,7 @@ module UploadColumn
     # TODO: this is a public method, should be specced
     def move_to_directory(dir)
       p = File.join(dir, self.filename)
-      if copy_file(p)
+      if move_file(p)
         @path = p
       end
     end
@@ -266,6 +266,8 @@ module UploadColumn
     def save
       self.move_to_directory(self.store_dir)
       self.versions.each { |version, file| file.move_to_directory(self.store_dir) } if self.versions
+      # delete uploaded file temp directory
+      FileUtils.rmdir(File.join(tmp_dir, @temp_name))
       @new_file = false
       @temp_name = nil
       true
