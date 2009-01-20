@@ -111,6 +111,13 @@ module UploadColumn
         return true
       end
     end
+
+    def move_file(path)
+      if copy_file(path) then
+        File.delete(self.path) if not self.path.nil?
+	return true
+      end
+    end
     
     def filename=(filename)
       basename, extension = split_extension(filename)

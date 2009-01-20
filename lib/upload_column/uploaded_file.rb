@@ -32,7 +32,7 @@ module UploadColumn
   class UploadedFile < SanitizedFile
     
     attr_reader :instance, :attribute, :options, :versions
-    attr_accessor :suffix
+    attr_accessor :suffix, :extension
     
     class << self
       
@@ -89,7 +89,7 @@ module UploadColumn
           self.process!(@options[:process]) if @options[:process] and self.respond_to?(:process!)
           
           initialize_versions do |version|
-            copy_to_version(version)
+            copy_to_version(version, options[:versions][version].is_a?(Hash) ? options[:versions][version][:format] : nil)
           end
           
           apply_manipulations_to_versions
@@ -120,14 +120,14 @@ module UploadColumn
       end
     end
     
-    # Returns the directory where tmp files are stored for this UploadedFile, relative to :root_dir
+    # Returns the directory where tmp files are stored for this UploadedFile, relative to RAILS_ROOT
     def relative_tmp_dir
       parse_dir_options(:tmp_dir)
     end
     
     # Returns the directory where tmp files are stored for this UploadedFile
     def tmp_dir
-      File.expand_path(self.relative_tmp_dir, @options[:root_dir])
+      File.expand_path("#{RAILS_ROOT}/" + self.relative_tmp_dir)
     end
     
     # Returns the directory where files are stored for this UploadedFile, relative to :root_dir
@@ -189,26 +189,26 @@ module UploadColumn
     alias_method :actual_filename, :filename
     
     def filename
-      unless bn = parse_dir_options(:filename)
-        bn = [self.basename, self.suffix].compact.join('-')
-        bn += ".#{self.extension}" unless self.extension.blank?
-      end
+	  bn = self.basename unless bn = parse_dir_options(:filename)
+      bn = [bn, self.suffix].compact.join('-')
+      bn += ".#{self.extension}" unless self.extension.blank?
       return bn
     end
     
     # TODO: this is a public method, should be specced
     def move_to_directory(dir)
       p = File.join(dir, self.filename)
-      if copy_file(p)
+      if move_file(p)
         @path = p
       end
     end
     
     private
     
-    def copy_to_version(version)
+    def copy_to_version(version, extension)
       copy = self.clone
       copy.suffix = version
+      copy.extension = extension if not extension.nil?
       
       if copy_file(File.join(self.dir, copy.filename))
         return copy
@@ -235,6 +235,7 @@ module UploadColumn
             # TODO: this might result in the manipulator not being loaded.
             @versions[version] = self.clone #class.new(:open, File.join(self.dir, "#{self.basename}-#{version}.#{self.extension}"), instance, attribute, options.merge(:versions => nil, :suffix => version))
             @versions[version].suffix = version
+	    @versions[version].extension = options[:versions][version][:format] if options[:versions][version].is_a?(Hash) and not options[:versions][version][:format].nil?
           end
           
           @versions[version].instance_eval { @path = File.join(self.dir, self.filename) } # ensure path is not cached
@@ -265,6 +266,8 @@ module UploadColumn
     def save
       self.move_to_directory(self.store_dir)
       self.versions.each { |version, file| file.move_to_directory(self.store_dir) } if self.versions
+      # delete uploaded file temp directory
+      FileUtils.rmdir(File.join(tmp_dir, @temp_name))
       @new_file = false
       @temp_name = nil
       true

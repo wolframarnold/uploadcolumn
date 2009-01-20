@@ -5,8 +5,6 @@ module UploadColumn::ActionControllerExtension
     base.helper_method :url_for_path
   end
   
-  protected
-  
   def url_for_with_uploaded_file_check(options = {}, *parameters_for_method_reference)
     if(options.respond_to?(:public_path))
       options.public_path
@@ -14,6 +12,8 @@ module UploadColumn::ActionControllerExtension
       url_for_without_uploaded_file_check(options || {}, *parameters_for_method_reference)
     end
   end
+  
+  protected
   
   def url_for_path(path)
     request.protocol + request.host_with_port + path

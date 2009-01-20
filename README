@@ -47,13 +47,13 @@ You can change the <tt>:tmp_dir</tt> in the same way.
 
 By default, UploadColumn will keep the name of the original file, however this might be inconvenient in some cases. You can pass a :filename directive to your upload_column declaration:
 
-    upload_column :picture, :filename => "donkey.png"
+    upload_column :picture, :filename => "donkey"
     
-In which case all files will be named +donkey.png+. This is not desirable if the file in question is a jpeg file of course. Usually it is more sensible to pass a Proc to :filename.
+In which case all files will be named +donkey+. Usually it is more sensible to pass a Proc to :filename.
 
-    upload_column :picture, :filename => proc{|record, file| "avatar#{record.id}.#{file.extension}"}
+    upload_column :picture, :filename => proc{|record, file| "avatar#{record.id}"}
     
-The Proc will be passed two parameters, the current instance, and the file itself.
+The Proc will be passed two parameters, the current instance, and the file itself. Don't specify the extension, it will be added automatically by type of uploaded file.
 
 == Manipulators
 
@@ -117,6 +117,14 @@ Note the 'c' in front of the dimensions for the thumb image, this will crop the 
     end
 
 This also puts your images in public/images instead of public, which is neat!
+
+== Format conversion
+
+You can convert the different versions of the uploaded image in another format. To do that, just pass a Hash to your version:
+
+	class User < ActiveRecord::Base
+	  image_column :picture, :versions => { :thumb => { :format => "png", :process => "c100x100" }, :large => "200x300", :sepiatoned => proc{ |img| img.sepiatone } }
+	end
 
 == Runtime rendering
 

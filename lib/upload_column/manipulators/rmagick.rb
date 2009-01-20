@@ -12,12 +12,14 @@ module UploadColumn
       end
       
       def process!(instruction = nil, &block)
-        if instruction.is_a?(Proc)
+        if instruction.is_a?(Hash)
+	        process!(&instruction[:process])
+        elsif instruction.is_a?(Proc)
           manipulate!(&instruction)
         elsif instruction.to_s =~ /^c(\d+x\d+)$/
           crop_resized!($1)
         elsif instruction.to_s =~ /^(\d+x\d+)$/
-          resize!($1)
+          resize!(instruction)
         end
         manipulate!(&block) if block
       end
@@ -51,7 +53,7 @@ module UploadColumn
         end
       end
       
-      def manipulate!
+      def manipulate!(options = {})
         image = ::Magick::Image.read(self.path)
         
         if image.size > 1
