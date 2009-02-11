@@ -12,7 +12,7 @@ module UploadColumn::UploadColumnHelper
   # Note: if you use file_field instead of upload_column_field, the file will not be
   # stored across form redisplays.
   def upload_column_field(object, method, options={})
-    file_field(object, method, options) + hidden_field(object, method.to_s + '_temp')
+    file_field(object, method, options) + hidden_field(object, method.to_s + '_temp', options)
   end
 
   # A helper method for creating a form tag to use with uploadng files,
